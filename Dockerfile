@@ -1,26 +1,26 @@
-FROM node:14-alpine AS frontend-builder
+FROM node:16-alpine
 
-WORKDIR /frontend
-
-COPY frontend/package.json frontend/pnpm-lock.yaml ./
-
-RUN npm install
-
-COPY frontend/ ./
-
-RUN npm run build
-
-FROM node:14-alpine
-
-WORKDIR /app
+WORKDIR /app/backend
 
 COPY backend/package.json backend/pnpm-lock.yaml ./
 
-RUN npm install
+RUN npm install -g pnpm && pnpm install
 
-COPY backend/ ./
+COPY backend/ .
 
-COPY --from=frontend-builder /frontend/dist /app/public
+WORKDIR /app/frontend
+
+COPY frontend/package.json frontend/pnpm-lock.yaml ./
+
+RUN pnpm install
+
+COPY frontend/ .
+
+RUN pnpm run build
+
+RUN cp -r dist/* ../backend/public
+
+WORKDIR /app/backend
 
 EXPOSE 3000
 
