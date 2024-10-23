@@ -13,7 +13,18 @@ app.use(
 	})
 );
 
-const connection = new sqlite3.Database("./db/aplikasi.db");
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+app.use(express.static(path.join(__dirname, "public")));
+
+const connection = new sqlite3.Database("./db/aplikasi.db", (err) => {
+	if (err) {
+		console.error("Error opening database:", err);
+	} else {
+		console.log("Connected to SQLite database");
+	}
+});
 
 app.get("/api/user/:id", (req, res) => {
 	const query = `SELECT * FROM users WHERE id = ${req.params.id}`;
@@ -41,6 +52,10 @@ app.get("/api/file", (req, res) => {
 
 	const filePath = path.join(__dirname, "files", req.query.name);
 	res.sendFile(filePath);
+});
+
+app.get("*", (req, res) => {
+	res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
 app.listen(3000, () => {
