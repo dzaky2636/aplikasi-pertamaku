@@ -8,7 +8,7 @@ const app = express();
 app.use(express.json());
 app.use(
 	cors({
-		origin: "*",
+		origin: ["http://your-allowed-domain.com"], // Replace with your actual domain
 		optionsSuccessStatus: 200,
 	})
 );
@@ -26,10 +26,22 @@ const connection = new sqlite3.Database("./db/aplikasi.db", (err) => {
 	}
 });
 
+// subdomain restrict
+app.use((req, res, next) => {
+	const allowedSubdomain = "dzaky";
+	const hostParts = req.headers.host.split(".");
+	const subdomain = hostParts[0];
+
+	if (subdomain !== allowedSubdomain) {
+		return res.status(403).send("Access denied");
+	}
+	next();
+});
+
 app.get("/api/user/:id", (req, res) => {
-	const query = `SELECT * FROM users WHERE id = ${req.params.id}`;
+	const query = `SELECT * FROM users WHERE id = ?`;
 	console.log(query);
-	connection.all(query, (error, results) => {
+	connection.all(query, [req.params.id], (error, results) => {
 		if (error) throw error;
 		res.json(results);
 	});
@@ -37,9 +49,9 @@ app.get("/api/user/:id", (req, res) => {
 
 app.post("/api/user/:id/change-email", (req, res) => {
 	const newEmail = req.body.email;
-	const query = `UPDATE users SET email = '${newEmail}' WHERE id = ${req.params.id}`;
+	const query = `UPDATE users SET email = ? WHERE id = ?`;
 
-	connection.run(query, function (err) {
+	connection.run(query, [newEmail, req.params.id], function (err) {
 		if (err) throw err;
 		if (this.changes === 0) res.status(404).send("User not found");
 		else res.status(200).send("Email updated successfully");
@@ -47,15 +59,19 @@ app.post("/api/user/:id/change-email", (req, res) => {
 });
 
 app.get("/api/file", (req, res) => {
-	const __filename = fileURLToPath(import.meta.url);
-	const __dirname = path.dirname(__filename);
-
 	const filePath = path.join(__dirname, "files", req.query.name);
 	res.sendFile(filePath);
 });
 
+// Fallback route for SPA
 app.get("*", (req, res) => {
 	res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+	console.error(err.stack);
+	res.status(500).send("Something broke!");
 });
 
 app.listen(3000, () => {
