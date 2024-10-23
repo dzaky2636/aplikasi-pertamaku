@@ -1,27 +1,26 @@
-FROM node:18-alpine
-
-WORKDIR /app/backend
-
-COPY backend/package.json backend/pnpm-lock.yaml ./
-
-RUN npm install -g pnpm && pnpm install
-
-COPY backend/ .
+FROM node:18-alpine AS frontend
 
 WORKDIR /app/frontend
 
-COPY frontend/package.json frontend/pnpm-lock.yaml ./
+COPY ./frontend/package.json ./frontend/pnpm-lock.yaml ./
+RUN npm install -g pnpm && pnpm install
 
-RUN pnpm install
-
-COPY frontend/ .
-
+COPY ./frontend ./
 RUN pnpm run build
 
-RUN cp -r dist/* ../frontend/public
+FROM node:18-alpine AS backend
 
 WORKDIR /app/backend
 
+COPY ./backend/package.json ./backend/pnpm-lock.yaml ./
+RUN npm install -g pnpm && pnpm install
+
+COPY ./backend ./
+
+COPY --from=frontend /app/frontend/dist ./public
+
 EXPOSE 3000
+
+ENV NODE_ENV=production
 
 CMD ["node", "server.js"]

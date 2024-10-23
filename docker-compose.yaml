@@ -1,14 +1,8 @@
 services:
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    build: .
     ports:
       - "80:3000"
     environment:
-      - NODE_ENV=production
-      - VUE_APP_SUBDOMAIN=dzaky
-      - PORT=3000
-      - NAME=dzaky
-    volumes:
-      - .:/app
+      VUE_APP_SUBDOMAIN: dzaky
+    container_name: aplikasi-pertamaku
