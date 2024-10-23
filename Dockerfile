@@ -18,7 +18,7 @@ COPY frontend/ .
 
 RUN pnpm run build
 
-RUN cp -r dist/* ../backend/public
+RUN cp -r dist/* ../frontend/public
 
 WORKDIR /app/backend
 
