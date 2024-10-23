@@ -1,26 +1,34 @@
+# frontend stage
 FROM node:18-alpine AS frontend
 
 WORKDIR /app/frontend
 
-COPY ./frontend/package.json ./frontend/pnpm-lock.yaml ./
-RUN npm install -g pnpm && pnpm install
+COPY frontend/package.json frontend/pnpm-lock.yaml ./
 
-COPY ./frontend ./
+RUN npm install && npm install -g pnpm && pnpm install
+
+COPY frontend/ .
+
 RUN pnpm run build
 
+# backend stage
 FROM node:18-alpine AS backend
 
 WORKDIR /app/backend
 
-COPY ./backend/package.json ./backend/pnpm-lock.yaml ./
-RUN npm install -g pnpm && pnpm install
+COPY backend/package.json backend/pnpm-lock.yaml ./
 
-COPY ./backend ./
+RUN npm install && npm install -g pnpm && pnpm install
 
-COPY --from=frontend /app/frontend/dist ./public
+COPY backend/ .
 
-EXPOSE 3000
+COPY --from=frontend /usr/src/frontend/dist ./public
 
-ENV NODE_ENV=production
+EXPOSE 3001 
+EXPOSE 3000 
+# 3001 is front, 3000 is back
 
-CMD ["node", "server.js"]
+ENV VITE_USER_NAME=$VITE_USER_NAME
+
+# Start the backend server
+CMD ["pnpm", "start"]
