@@ -2,10 +2,10 @@
 import { ref } from 'vue';
 
 const comment = ref('');
-const comments = ref('');
+const comments = ref([]);
 
 const submitComment = () => {
-  comments.value += `<p>${comment.value}</p>`;
+  comments.value.push(comment.value);
   comment.value = '';
 };
 </script>
@@ -15,6 +15,8 @@ const submitComment = () => {
     <h3>Comments</h3>
     <input v-model="comment" placeholder="Leave a comment" />
     <button @click="submitComment">Submit</button>
-    <div v-html="comments"></div>
+    <div>
+      <p v-for="(com, index) in comments" :key="index">{{ com }}</p>
+    </div>
   </div>
 </template>

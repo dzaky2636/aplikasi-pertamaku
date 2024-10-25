@@ -5,22 +5,27 @@ import CommentSection from './components/CommentSection.vue';
 const userId = ref('');
 const users = ref(null);
 const newEmail = ref('');
+const authToken = 'contoh-auth-token'; // contoh, perlu diganti dengan token yang valid
 
 const getUser = async () => {
-  const response = await fetch(`http://localhost:3000/api/user/${userId.value}`);
+  const response = await fetch(`https://yourdomain.com/api/user/${userId.value}`, {
+    headers: {
+      Authorization: `Bearer ${authToken}`, // authorization header
+    },
+  });
   users.value = await response.json();
 };
 
 const changeEmail = async () => {
-  await fetch('http://localhost:3000/api/change-email', {
+  await fetch('https://yourdomain.com/api/change-email', {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${authToken}`, // otorisasi lagi
     },
-    body: `email=${newEmail.value}`,
+    body: JSON.stringify({ email: newEmail.value }), // kita gunakan JSON untuk mengirim data
   });
 };
-</script>
 
 <template>
   <div id="app">
